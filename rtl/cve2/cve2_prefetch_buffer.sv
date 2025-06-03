@@ -9,6 +9,7 @@
  * Prefetch Buffer that caches instructions. This cuts overly long critical
  * paths to the instruction cache.
  */
+ // DO NOT TOUCH THIS
 module cve2_prefetch_buffer #(
 ) (
   input  logic        clk_i,

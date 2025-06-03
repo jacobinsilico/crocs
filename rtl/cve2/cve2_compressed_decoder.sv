@@ -10,7 +10,7 @@
  * This module is fully combinatorial, clock and reset are used for
  * assertions only.
  */
-
+// DO NOT TOUCH THIS unless we want to add compressed SIMD later
 `include "lowrisc_prim/prim_assert.svh"
 
 module cve2_compressed_decoder (
