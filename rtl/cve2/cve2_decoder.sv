@@ -630,6 +630,11 @@ module cve2_decoder #(
         end
 
       end
+      /// CUSTOM SIMD INSTRUCTION DECODING ///
+      CUSTOM_OPCODE_SIMD: begin 
+        // here we need to decode instructions based on func3 and func7 fields
+      end 
+
       default: begin
         illegal_insn = 1'b1;
       end
@@ -1148,6 +1153,12 @@ module cve2_decoder #(
         end
 
       end
+
+      /// CUSTOM SIMD INSTRUCTION
+      CUSTOM_OPCODE_SIMD: begin 
+        ;
+      end
+
       default: ;
     endcase
   end
