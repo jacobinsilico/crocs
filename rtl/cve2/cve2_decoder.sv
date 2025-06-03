@@ -287,10 +287,10 @@ module cve2_decoder #(
       ////////////////
 
       OPCODE_STORE: begin
-        rf_ren_a_o         = 1'b1;
-        rf_ren_b_o         = 1'b1;
-        data_req_o         = 1'b1;
-        data_we_o          = 1'b1;
+        rf_ren_a_o         = 1'b1;      // instruction reads from RF A
+        rf_ren_b_o         = 1'b1;      // instruction reads from RF B
+        data_req_o         = 1'b1;      // start transaction to data memory
+        data_we_o          = 1'b1;      // write enable
 
         if (instr[14]) begin
           illegal_insn = 1'b1;
@@ -306,9 +306,9 @@ module cve2_decoder #(
       end
 
       OPCODE_LOAD: begin
-        rf_ren_a_o          = 1'b1;
-        data_req_o          = 1'b1;
-        data_type_o         = 2'b00;
+        rf_ren_a_o          = 1'b1;       // instruction reads from RF A
+        data_req_o          = 1'b1;       // start transaction to data memory
+        data_type_o         = 2'b00;      // size of transaction: byte, half, word
 
         // sign/zero extension
         data_sign_extension_o = ~instr[14];
@@ -630,17 +630,50 @@ module cve2_decoder #(
         end
 
       end
+
+      ////////////////////////////////////////
       /// CUSTOM SIMD INSTRUCTION DECODING ///
+      ////////////////////////////////////////
       CUSTOM_OPCODE_SIMD: begin 
-        // here we need to decode instructions based on func3 and func7 fields
+        // decode based on funct3
         unique case (instr[14:12])
-          3'b000: begin 
+          3'b000: begin   // vld (vector load) I-type DONE
+            rf_ren_a_o              = 1'b1;   // use rs1 as address base
+            rf_we                   = 1'b1;   // write result to rd
+            data_req_o              = 1'b1;   // initiate memory load
+            /*data_type_o:
+              this determines whether we load byte, half or word,
+              we plan to load 32 bits every time, thus we hardcode to word
+              CHANGE LATER IF NEEDED
+            */
+            data_type_o             = 2'b00; 
+            /*data_sign_extension_o:
+              output of cve2_decoder module, we are not using it now so it is 
+              hardcoded to unsigned load
+              CHANGE LATER IF NEEDED
+            */
+            data_sign_extension_o   = 1'b0;
           end
-          3'b001: begin  
+
+          3'b001: begin   // vst (vector store) S-type DONE
+            rf_ren_a_o              = 1'b1;  // rs1 = base address
+            rf_ren_b_o              = 1'b1;  // rs2 = data to store
+            data_req_o              = 1'b1;  // start transaction to data memory
+            data_we_o               = 1'b1;  // write enable
+
+            data_type_o             = 2'b00; // hardcoded to words
           end 
-          3'b011: begin 
+
+          3'b011: begin   // vthreshi (vector threshold immediate) I-type
+            rf_ren_a_o              = 1'b1;  // rs1 = packed 4 pixels
+            rf_we                   = 1'b1;  // write result to rd
+            rf_wdata_sel_o          = RF_WD_EX; // we write data back to a register in the EX stage 
+            // MODIFY ALU FOR SIMD THRESHOLDING
           end 
-          default: ;
+
+          default: begin 
+            illegal_insn = 1'b1; //unknown SIMD funct3
+          end 
         endcase 
       end 
       default: begin
