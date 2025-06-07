@@ -408,6 +408,7 @@ module cve2_alu #(
   logic [31:0] invbutterfly_result;
   logic [31:0] clmul_result;
   logic [31:0] multicycle_result;
+  logic [31:0] vthresh_result;                // we are adding logic signal for vthreshi operation
 
   if (RV32B != RV32BNone) begin : g_alu_rvb
 
@@ -1278,6 +1279,15 @@ module cve2_alu #(
           end
         end
 
+        /// CUSTOM SIMD INSTRUCTIONS ///
+        // We are adding vector threshold immediate here, because it operates on bits
+        // CHECK IF THIS IS REALLY THE CORRECT PLACE
+        ALU_VTHRESHI: begin 
+          for (int i = 0; i < 4; i++) begin
+            vthresh_result[(i+1)*8 - 1 : 0 + i*8] = (operand_a_i[(i+1)*8 - 1 : 0 + i*8] > operand_b_i[7:0]) ? 8'hFF : 8'h00;
+          end
+        end 
+
         default: begin
           imd_val_d_o = '{operand_a_i, 32'h0};
           imd_val_we_o = 2'b00;
@@ -1390,6 +1400,9 @@ module cve2_alu #(
       ALU_CLMUL, ALU_CLMULR,
       ALU_CLMULH: result_o = clmul_result;
 
+      // SIMD Operations
+      ALU_VTHRESHI: result_o = vthresh_result; // this operation changes ALU logic, thus we need a custom result_o in the final MUX
+      // we should be able to reuse the signal pack_result, but I feel like definining new one might be better for the critical path
       default: ;
     endcase
   end
