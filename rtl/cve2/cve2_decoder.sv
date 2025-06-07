@@ -664,11 +664,14 @@ module cve2_decoder #(
             data_type_o             = 2'b00; // hardcoded to words
           end 
 
-          3'b011: begin   // vthreshi (vector threshold immediate) I-type
+          3'b011: begin   // vthreshi (vector threshold immediate) I-type DONE
             rf_ren_a_o              = 1'b1;  // rs1 = packed 4 pixels
             rf_we                   = 1'b1;  // write result to rd
             rf_wdata_sel_o          = RF_WD_EX; // we write data back to a register in the EX stage 
             // MODIFY ALU FOR SIMD THRESHOLDING
+            // no memory access
+            data_req_o              = 1'b0;
+            // data_type_o             = 1'b0; // we probably don't need to change this
           end 
 
           default: begin 
@@ -1196,8 +1199,41 @@ module cve2_decoder #(
       end
 
       /// CUSTOM SIMD INSTRUCTION
-      CUSTOM_OPCODE_SIMD: begin 
-        ;
+      CUSTOM_OPCODE_SIMD: begin
+        unique case (instr[14:12])
+
+          3'b000: begin // vld
+            alu_op_a_mux_sel_o = OP_A_REG_A;     // base address
+            alu_op_b_mux_sel_o = OP_B_IMM;       // offset
+            imm_b_mux_sel_o    = IMM_B_I;        // I-type
+            alu_operator_o     = ALU_ADD;
+          end
+
+          3'b001: begin // vst - this instruction is semantically a copy of scalar store
+            alu_op_a_mux_sel_o = OP_A_REG_A;     // base address
+            alu_op_b_mux_sel_o = OP_B_REG_B;     // value to store
+            if (!instr_alu[14]) begin
+              // offset from immediate
+              imm_b_mux_sel_o     = IMM_B_S;
+              alu_op_b_mux_sel_o  = OP_B_IMM;
+            end
+          end
+
+          3'b011: begin // vthreshi
+            alu_op_a_mux_sel_o = OP_A_REG_A;     // vector operand in rs1
+            alu_op_b_mux_sel_o = OP_B_IMM;       // threshold immediate
+            imm_b_mux_sel_o    = IMM_B_I;        // I-type instruction
+            alu_operator_o     = ALU_VTHRESHI;   // custom ALU opcode
+          end
+
+          default: begin // default signals for SIMD operations we might want to add, code should never get here
+            alu_operator_o     = ALU_ADD;
+            alu_op_a_mux_sel_o = OP_A_REG_A;
+            alu_op_b_mux_sel_o = OP_B_REG_B;
+            imm_b_mux_sel_o    = IMM_B_I;
+          end
+
+        endcase
       end
 
       default: ;
