@@ -176,6 +176,9 @@ package cve2_pkg;
     ALU_CRC32C_H,
     ALU_CRC32_W,
     ALU_CRC32C_W
+
+    // SIMD Operations
+    ALU_VTHRESHI // vector threshold immediate
   } alu_op_e;
 
   typedef enum logic [1:0] {
