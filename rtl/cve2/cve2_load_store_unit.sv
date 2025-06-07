@@ -11,6 +11,7 @@
  * and to align bytes and halfwords.
  */
 
+// NO CHANGE REQUIRED if we assume workload = image thresholding
 `include "lowrisc_prim/prim_assert.svh"
 
 module cve2_load_store_unit
