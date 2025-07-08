@@ -1,123 +1,82 @@
-`timescale 1ns/1ps
-// All delays (#) are interpreted with this resolution (1ns) and precision (1ps)
-
-module threshold_simd_tb;
-// Declares the top-level module for the testbench
-
-  localparam int WIDTH  = 256;
-  localparam int HEIGHT = 256;
-  // WIDTH and HEIGHT: Dimensions of the grayscale image.
+module threshold_hex_simd_tb;
+  // Declare constants and parameters
+  localparam int WIDTH  = 64;     // Set to original or larger if necessary
+  localparam int HEIGHT = 64;    // Set to original or larger if necessary
 
   localparam byte THRESHOLD = 8'd128;
-  // THRESHOLD: The value used to binarize pixels. If a pixel is > 128, it becomes 255 (white), else 0 (black).
+  localparam int SIMD_WIDTH = 4; // Number of pixels processed at once
+  // we try to test timing
+  vluint64_t main_time =0;
+  double sc_time_stamp() {return main_time;}
+  // Use unsigned for image data
+  reg [7:0] image_inp [0:HEIGHT-1][0:WIDTH-1];  // Input image (unsigned 8-bit)
+  reg [7:0] image_op [0:HEIGHT-1][0:WIDTH-1];   // Output image (unsigned 8-bit)
 
-  localparam int SIMD_WIDTH = 8;
-  // SIMD_WIDTH: number of pixels processed at once
+  string input_file = "image.hex";  // Path to input file
 
-  byte image_in [0:HEIGHT-1][0:WIDTH-1];
-  byte image_out[0:HEIGHT-1][0:WIDTH-1];
-  // 2D arrays of 8-bit values (byte) to store the input and output images.
-  // Represent the full grayscale image as a matrix
-
-  string input_file = "image.hex";
-  // input_file: Path to the image file in hex format (each line = 1 pixel in hex).
-
-  int fp;
-  // fp: File pointer used by $fopen() and related file I/O tasks.
+  int fp;  // File pointer used by $fopen() and related file I/O tasks
 
   // Read input .hex file
   initial begin
-  // initial: Runs once at time 0 in simulation. We use it to load image data.
-
-    fp = $fopen(input_file, "r");
-    if (!fp) begin
-      $display("ERROR: Cannot open file %s", input_file);
-      $finish;
-    end
-    // Opens the image.hex file for reading.
-    // If the file cannot be opened, the simulation exits with an error.
-
-
-    int i = 0;
-    byte val;
-    // Declares a loop counter i and a temporary val to hold each pixel read.
-
-    // Reads the file line by line
-    // $fgets(line, fp): reads a line of text into line.
-    // $sscanf(line, "%2x", val): parses 2-digit hex value into val.
-    // The line number i is used to map to 2D coordinates:
-    // i / WIDTH: row index
-    // i % WIDTH: column index
-    // Stores each pixel into image_in[row][col].
-
-    while (!$feof(fp) && i < WIDTH * HEIGHT) begin
-      string line;
-      $fgets(line, fp);
-      $sscanf(line, "%2x", val);
-      image_in[i / WIDTH][i % WIDTH] = val;
-      i++;
-    end
-    $fclose(fp);
-
-    // Closes the file and prints how many pixels were read (should be 65536 for 256×256).
-
+    // Read the image from the hex file into the array
+    $readmemh(input_file, image_inp);
+    $display("Loaded image from %s", input_file);
   end
 
-  // Perform thresholding using pseudo-SIMD
+  // Perform thresholding using SIMD-like processing
   initial begin
-  // This second initial block starts after 10ns of delay to simulate some realistic processing lag.
+    // Delay to simulate realistic processing time
     #10;
 
+    // Iterate over each row and process SIMD_WIDTH pixels at a time
     for (int row = 0; row < HEIGHT; row++) begin
       for (int col = 0; col < WIDTH; col += SIMD_WIDTH) begin
-      // Loop over all rows
-      // Inner loop processes SIMD_WIDTH (8) pixels at once per iteration
-
-        // Load 8 pixels (SIMD load)
-        byte pixels[SIMD_WIDTH];
+        // Load SIMD_WIDTH pixels (8 at once)
+        reg [7:0] pixels[SIMD_WIDTH-1:0];
+        
+        // Load pixels into the SIMD array
         for (int k = 0; k < SIMD_WIDTH; k++) begin
-          pixels[k] = image_in[row][col + k];
-        end
-        // Load 8 adjacent pixels from the row into a temporary pixels[] array
-
-        // SIMD compare + select
-        for (int k = 0; k < SIMD_WIDTH; k++) begin
-          image_out[row][col + k] = (pixels[k] > THRESHOLD) ? 8'd255 : 8'd0;
+          pixels[k] = image_inp[row][col + k];
         end
 
-        // Apply thresholding to all 8 pixels:
-        // If pixel > 128 → set to 255 (white)
-        // Else → set to 0 (black)
-
-        // SIMD store done automatically above
+        // Perform SIMD thresholding (compare each pixel to the threshold)
+        for (int k = 0; k < SIMD_WIDTH; k++) begin
+          // Apply the threshold: If the pixel is greater than the threshold, set it to 255, otherwise 0
+          image_op[row][col + k] = (pixels[k] > THRESHOLD) ? 8'd255 : 8'd0;
+          while (!done) {
+            top->clk
+          }
+        end
       end
     end
 
-    $display("SIMD-style thresholding complete");
-    dump_pgm("simd_threshold_out.pgm", image_out);
+    $display("SIMD-style thresholding complete.");
+    dump_pgm("simd_threshold_out.pgm", image_op);  // Save the thresholded image to a .pgm file
     $finish;
   end
+  int fout;
+  // Dump image as ASCII PGM (Portable Grayscale Map)
+  task dump_pgm(input string filename, input reg [7:0] img[0:HEIGHT-1][0:WIDTH-1]);
+    fout = $fopen(filename, "w");
+    if (!fout) begin
+      $display("ERROR: Cannot open file %s", filename);
+      return;
+    end
 
-  // Dump image as ASCII PGM
-  task dump_pgm(input string filename, input byte img[0:HEIGHT-1][0:WIDTH-1]);
-    int fout = $fopen(filename, "w");
+    // Write the PGM header for the ASCII format (P2)
     $fwrite(fout, "P2\n%d %d\n255\n", WIDTH, HEIGHT);
+
+    // Write pixel data to the file
     for (int i = 0; i < HEIGHT; i++) begin
       for (int j = 0; j < WIDTH; j++) begin
         $fwrite(fout, "%0d ", img[i][j]);
       end
       $fwrite(fout, "\n");
     end
-  
-    // Declares a task that writes a 2D grayscale image to a .pgm file.
-    // P2 format = ASCII grayscale (readable in viewers like ImageMagick, GIMP, etc.).
-    // Opens the output file.
-    // If file cannot be opened, prints error and returns early.
-  
+
+    // Close the file and display a success message
     $fclose(fout);
     $display("Output written to %s", filename);
   endtask
-
-  // Close the file and show confirmation
 
 endmodule
