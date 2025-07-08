@@ -1,9 +1,6 @@
 module threshold_hex_simd_tb;
-
-  logic clk;
-  int cycle_count = 0;
-
   // Clock generation (adjust period as needed)
+  int clk;
   initial clk = 0;
   always #5 clk = ~clk;  // 10 time units period
 
@@ -13,9 +10,6 @@ module threshold_hex_simd_tb;
 
   localparam byte THRESHOLD = 8'd128;
   localparam int SIMD_WIDTH = 4; // Number of pixels processed at once
-  // we try to test timing
-  vluint64_t main_time =0;
-  double sc_time_stamp() {return main_time;}
   // Use unsigned for image data
   reg [7:0] image_inp [0:HEIGHT-1][0:WIDTH-1];  // Input image (unsigned 8-bit)
   reg [7:0] image_op [0:HEIGHT-1][0:WIDTH-1];   // Output image (unsigned 8-bit)
@@ -23,7 +17,7 @@ module threshold_hex_simd_tb;
   string input_file = "image.hex";  // Path to input file
 
   int fp;  // File pointer used by $fopen() and related file I/O tasks
-
+  int cycle_count = 0;
   // Count cycles
   always @(posedge clk) begin
     cycle_count++;
@@ -57,21 +51,18 @@ module threshold_hex_simd_tb;
         for (int k = 0; k < SIMD_WIDTH; k++) begin
           // Apply the threshold: If the pixel is greater than the threshold, set it to 255, otherwise 0
           image_op[row][col + k] = (pixels[k] > THRESHOLD) ? 8'd255 : 8'd0;
-          while (!done) {
-            top->clk
-          }
         end
       end
     end
 
-    $display("SIMD-style thresholding complete.");
-    dump_pgm("simd_threshold_out.pgm", image_op);  // Save the thresholded image to a .pgm file
+  $display("SIMD-style thresholding complete.");
+  dump_pgm("simd_threshold_out.pgm", image_op);  // Save the thresholded image to a .pgm file
 
-    wait (done);  // or however your DUT signals completion
+  //wait (done);  // or however your DUT signals completion
 
-    $display("Simulation completed in %0d cycles", cycle_count);
-    $finish;
-  end
+  $display("Simulation completed in %0d cycles", cycle_count);
+  $finish;
+  end
 
   int fout;
   // Dump image as ASCII PGM (Portable Grayscale Map)

@@ -1,4 +1,8 @@
 module threshold_hex_tb;
+  // Clock generation (adjust period as needed)
+  int clk;
+  initial clk = 0;
+  always #5 clk = ~clk;  // 10 time units period
   // Declare constants and parameters
   localparam int WIDTH  = 64;
   localparam int HEIGHT = 64;
@@ -12,6 +16,11 @@ module threshold_hex_tb;
   string input_file = "image.hex";
 
   int fp;
+  int cycle_count = 0;
+  // Count cycles
+  always @(posedge clk) begin
+    cycle_count++;
+  end
 
   initial begin
     // Load the image from the hex file into the array
@@ -35,7 +44,12 @@ module threshold_hex_tb;
 
     $display("Thresholding complete.");
     dump_pgm("threshold_out.pgm", image_op);
+
+    //wait (done);  // or however your DUT signals completion
+
+    $display("Simulation completed in %0d cycles", cycle_count);
     $finish;
+    
   end
 
   int fout;
