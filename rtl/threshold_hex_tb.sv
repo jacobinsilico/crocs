@@ -28,6 +28,9 @@ module threshold_hex_tb;
   // Read .hex file
   initial begin
   // initial: Runs once at time 0 in simulation. We use it to load image data.
+    int i = 0;
+    byte val;
+    // Declares a loop counter i and a temporary val to hold each pixel read.
 
     fp = $fopen(input_file, "r");
     if (!fp) begin
@@ -36,11 +39,6 @@ module threshold_hex_tb;
     end
     // Opens the image.hex file for reading.
     // If the file cannot be opened, the simulation exits with an error.
-
-
-    int i = 0;
-    byte val;
-    // Declares a loop counter i and a temporary val to hold each pixel read.
 
 
     // Reads the file line by line
