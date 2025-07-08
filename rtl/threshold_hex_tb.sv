@@ -5,8 +5,8 @@
 module threshold_hex_tb;
 // Declares the top-level module for the testbench
 
-  localparam int WIDTH  = 256;
-  localparam int HEIGHT = 256;
+  localparam int WIDTH  = 64;
+  localparam int HEIGHT = 64;
   // WIDTH and HEIGHT: Dimensions of the grayscale image.
 
   localparam byte THRESHOLD = 8'd128;
@@ -91,10 +91,10 @@ module threshold_hex_tb;
 
   end
 
-
+  int fout;
   // Dump image as ASCII PGM (portable grayscale map)
   task dump_pgm(input string filename, input byte img[0:HEIGHT-1][0:WIDTH-1]);
-    int fout = $fopen(filename, "w");
+    fout = $fopen(filename, "w");
     if (!fout) begin
       $display("ERROR: Cannot open output file %s", filename);
       return;

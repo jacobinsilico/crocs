@@ -175,7 +175,7 @@ package cve2_pkg;
     ALU_CRC32_H,
     ALU_CRC32C_H,
     ALU_CRC32_W,
-    ALU_CRC32C_W
+    ALU_CRC32C_W,
 
     // SIMD Operations
     ALU_VTHRESHI // vector threshold immediate
