@@ -1,4 +1,12 @@
 module threshold_hex_simd_tb;
+
+  logic clk;
+  int cycle_count = 0;
+
+  // Clock generation (adjust period as needed)
+  initial clk = 0;
+  always #5 clk = ~clk;  // 10 time units period
+
   // Declare constants and parameters
   localparam int WIDTH  = 64;     // Set to original or larger if necessary
   localparam int HEIGHT = 64;    // Set to original or larger if necessary
@@ -15,6 +23,12 @@ module threshold_hex_simd_tb;
   string input_file = "image.hex";  // Path to input file
 
   int fp;  // File pointer used by $fopen() and related file I/O tasks
+
+  // Count cycles
+  always @(posedge clk) begin
+    cycle_count++;
+  end
+
 
   // Read input .hex file
   initial begin
@@ -52,8 +66,13 @@ module threshold_hex_simd_tb;
 
     $display("SIMD-style thresholding complete.");
     dump_pgm("simd_threshold_out.pgm", image_op);  // Save the thresholded image to a .pgm file
+
+    wait (done);  // or however your DUT signals completion
+
+    $display("Simulation completed in %0d cycles", cycle_count);
     $finish;
-  end
+  end
+
   int fout;
   // Dump image as ASCII PGM (Portable Grayscale Map)
   task dump_pgm(input string filename, input reg [7:0] img[0:HEIGHT-1][0:WIDTH-1]);
