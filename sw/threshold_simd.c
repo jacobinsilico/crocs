@@ -11,7 +11,6 @@
 // Memory-mapped addresses in SRAM
 #define INPUT_ADDR   ((volatile uint8_t *) 0x10000000)
 #define OUTPUT_ADDR  ((volatile uint8_t *) 0x10000400)
-#define EOC_ADDR     ((volatile uint32_t *) 0x20000008)
 
 int main() {
     uart_init();
@@ -45,6 +44,5 @@ int main() {
     uint32_t end = get_mcycle();
     printf("SIMD thresholding done in %d cycles\n", end - start);
 
-    *EOC_ADDR = 1;       // Signal end of computation to simulation
-    while (1);           // Wait for simulation to halt
+    return 1;
 }
