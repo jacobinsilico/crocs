@@ -3,7 +3,7 @@
 #include "lib/inc/print.h"
 #include "lib/inc/timer.h"
 #include "lib/inc/util.h"
-#include "lib/inc/image_data.h"  // image_data[784]
+#include "image_data.h"  // image_data[784]
 
 #define N_PIXELS   784
 #define THRESHOLD  127

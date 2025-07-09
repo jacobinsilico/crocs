@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "print.h": "c",
-        "timer.h": "c"
+        "timer.h": "c",
+        "util.h": "c"
     }
 }
