@@ -1,7 +1,36 @@
-oseda-2025.01:[sw]$ make bin/threshold_simd.elf
-riscv64-unknown-elf-gcc -march=rv32i_zicsr -mabi=ilp32 -mcmodel=medany -static -std=gnu99 -Os -nostdlib -fno-builtin -ffreestanding -Iinclude -Ilib/inc -I/home/vlsi2_21fs25/VLSI2_Project/croc_simd/sw -c threshold_simd.c -o threshold_simd.c.o
-threshold_simd.c: In function 'main':
-threshold_simd.c:36:9: error: 'asm' specifier for variable 'result' conflicts with 'asm' clobber list
-   36 |         asm volatile (
-      |         ^~~
-make: *** [Makefile:58: threshold_simd.c.o] Error 1
+10000518 <main>:
+10000518:       ff010113                addi    sp,sp,-16
+1000051c:       00112623                sw      ra,12(sp)
+10000520:       ec1ff0ef                jal     100003e0 <uart_init>
+10000524:       00000517                auipc   a0,0x0
+10000528:       08050513                addi    a0,a0,128 # 100005a4 <main+0x8c>
+1000052c:       da1ff0ef                jal     100002cc <printf>
+10000530:       00000793                li      a5,0
+10000534:       10000537                lui     a0,0x10000
+10000538:       e9a18593                addi    a1,gp,-358 # 100005f8 <image_data>
+1000053c:       31000713                li      a4,784
+10000540:       00f58633                add     a2,a1,a5
+10000544:       00064603                lbu     a2,0(a2)
+10000548:       00a786b3                add     a3,a5,a0
+1000054c:       00178793                addi    a5,a5,1
+10000550:       00c68023                sb      a2,0(a3)
+10000554:       fee796e3                bne     a5,a4,10000540 <main+0x28>
+10000558:       b0002873                csrr    a6,mcycle
+1000055c:       100007b7                lui     a5,0x10000
+10000560:       31078713                addi    a4,a5,784 # 10000310 <printf+0x44>
+10000564:       00078593                mv      a1,a5
+10000568:       00b5850b                .insn   4, 0x00b5850b
+1000056c:       07f5530b                .insn   4, 0x07f5530b
+10000570:       00c5a50b                .insn   4, 0x00c5a50b
+10000574:       00478793                addi    a5,a5,4
+10000578:       fee796e3                bne     a5,a4,10000564 <main+0x4c>
+1000057c:       b0002773                csrr    a4,mcycle
+10000580:       00000517                auipc   a0,0x0
+10000584:       05050513                addi    a0,a0,80 # 100005d0 <main+0xb8>
+10000588:       410705b3                sub     a1,a4,a6
+1000058c:       d41ff0ef                jal     100002cc <printf>
+10000590:       efdff0ef                jal     1000048c <uart_write_flush>
+10000594:       00c12083                lw      ra,12(sp)
+10000598:       00100513                li      a0,1
+1000059c:       01010113                addi    sp,sp,16
+100005a0:       00008067                ret
