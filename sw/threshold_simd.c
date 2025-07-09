@@ -1,9 +1,9 @@
 #include <stdint.h>
-#include "uart.h"
-#include "print.h"
-#include "timer.h"
-#include "util.h"
-#include "image_data.h"
+#include "lib/inc/uart.h"
+#include "lib/inc/print.h"
+#include "lib/inc/timer.h"
+#include "lib/inc/util.h"
+#include "lib/inc/image_data.h"
 
 #define N_PIXELS   784
 #define THRESHOLD  127
