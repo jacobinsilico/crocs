@@ -15,7 +15,7 @@
 int main() {
     uart_init();
     printf("Running SIMD threshold on 28x28 image...\n");
-
+    uart_write_flush();
     // Copy image to SRAM input buffer
     for (int i = 0; i < N_PIXELS; i++) {
         INPUT_ADDR[i] = image_data[i];
@@ -38,11 +38,12 @@ int main() {
 
         if ((i / 4) % 20 == 0) {
             printf("Processed %d pixels...\n", i + 4);
+            uart_write_flush();
         }
     }
 
     uint32_t end = get_mcycle();
     printf("SIMD thresholding done in %d cycles\n", end - start);
-
+    uart_write_flush();
     return 1;
 }
