@@ -25,16 +25,10 @@ int main() {
 
     // SIMD threshold in chunks of 4 pixels (1 word)
     for (int i = 0; i < N_PIXELS; i += 4) {
-        // Set up registers:
-        // - x11: address of 4 input pixels (base pointer)
-        // - x10: loaded 4-pixel vector
-        // - x12: result of threshold operation
-        // - vst writes back to OUTPUT_ADDR[i]
-
-        register uint32_t result asm("x12");  // not strictly needed, but allows optional C-side verification
+        uint32_t result;
 
         asm volatile (
-            "mv x11, %0       \n"             // x11 = address of input[i]
+            "mv x11, %1       \n"             // x11 = address of input[i]
             ".word 0x00b5850b \n"             // vld x10, 0(x11)
             ".word 0x07f5530b \n"             // vthreshi x12, x10, 127
             ".word 0x00c5a50b \n"             // vst x12, 0(x11)
@@ -42,6 +36,9 @@ int main() {
             : "r"(INPUT_ADDR + i)
             : "x10", "x11", "x12"
         );
+
+        // Optionally store result to software-visible output buffer
+        // ((uint32_t *)OUTPUT_ADDR)[i / 4] = result;
     }
 
     uint32_t end = get_mcycle();
