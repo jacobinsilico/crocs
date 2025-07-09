@@ -16,7 +16,7 @@ int main() {
     uart_init();
     asm volatile ("nop; nop; nop; nop; nop;");
     printf("Running SIMD threshold on 28x28 image...\n");
-    uart_write_flush();
+    //uart_write_flush();
     // Copy image to SRAM input buffer
     printf("About to read the image"); // we never get here
     for (int i = 0; i < N_PIXELS; i++) {
