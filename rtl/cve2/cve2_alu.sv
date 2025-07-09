@@ -1284,7 +1284,7 @@ module cve2_alu #(
         // CHECK IF THIS IS REALLY THE CORRECT PLACE
         ALU_VTHRESHI: begin 
           for (int i = 0; i < 4; i++) begin
-            vthresh_result[(i+1)*8 - 1 : 0 + i*8] = (operand_a_i[(i+1)*8 - 1 : 0 + i*8] > operand_b_i[7:0]) ? 8'hFF : 8'h00;
+            vthresh_result[(i+1)*8 - 1 : i*8] = (operand_a_i[(i+1)*8 - 1 : i*8] > operand_b_i[7:0]) ? 8'hFF : 8'h00;
           end
         end 
 
