@@ -1,36 +1,20 @@
-10000518 <main>:
-10000518:       ff010113                addi    sp,sp,-16
-1000051c:       00112623                sw      ra,12(sp)
-10000520:       ec1ff0ef                jal     100003e0 <uart_init>
-10000524:       00000517                auipc   a0,0x0
-10000528:       08050513                addi    a0,a0,128 # 100005a4 <main+0x8c>
-1000052c:       da1ff0ef                jal     100002cc <printf>
-10000530:       00000793                li      a5,0
-10000534:       10000537                lui     a0,0x10000
-10000538:       e9a18593                addi    a1,gp,-358 # 100005f8 <image_data>
-1000053c:       31000713                li      a4,784
-10000540:       00f58633                add     a2,a1,a5
-10000544:       00064603                lbu     a2,0(a2)
-10000548:       00a786b3                add     a3,a5,a0
-1000054c:       00178793                addi    a5,a5,1
-10000550:       00c68023                sb      a2,0(a3)
-10000554:       fee796e3                bne     a5,a4,10000540 <main+0x28>
-10000558:       b0002873                csrr    a6,mcycle
-1000055c:       100007b7                lui     a5,0x10000
-10000560:       31078713                addi    a4,a5,784 # 10000310 <printf+0x44>
-10000564:       00078593                mv      a1,a5
-10000568:       00b5850b                .insn   4, 0x00b5850b
-1000056c:       07f5530b                .insn   4, 0x07f5530b
-10000570:       00c5a50b                .insn   4, 0x00c5a50b
-10000574:       00478793                addi    a5,a5,4
-10000578:       fee796e3                bne     a5,a4,10000564 <main+0x4c>
-1000057c:       b0002773                csrr    a4,mcycle
-10000580:       00000517                auipc   a0,0x0
-10000584:       05050513                addi    a0,a0,80 # 100005d0 <main+0xb8>
-10000588:       410705b3                sub     a1,a4,a6
-1000058c:       d41ff0ef                jal     100002cc <printf>
-10000590:       efdff0ef                jal     1000048c <uart_write_flush>
-10000594:       00c12083                lw      ra,12(sp)
-10000598:       00100513                li      a0,1
-1000059c:       01010113                addi    sp,sp,16
-100005a0:       00008067                ret
+oseda-2025.01:[verilator]$ ./obj_dir/Vtb_croc_soc +binary="../sw/bin/threshold_simd.hex"
+Running program: ../sw/bin/threshold_simd.hex
+ClkFrequency:         20MHz
+UartRealBaudRate:     125000
+@     41100ns | [JTAG] Initialization success
+@     41100ns | [JTAG] Writing 0x12345678 to 0x10000000
+@     93650ns | [JTAG] Read 0x12345678 from 0x10000000
+@     93650ns | [JTAG] Read back correct data
+@     93650ns | [JTAG] Loading binary from ../sw/bin/threshold_simd.hex
+@     95950ns | [JTAG] Writing to memory @10000000 
+@    148850ns | [JTAG] Writing to memory @10000058 
+@    930850ns | [JTAG] Writing to memory @100005a4 
+@   1443750ns | [CORE] Start fetching instructions
+@   1446050ns | [JTAG] Halting hart 0... 
+@   1459400ns | [JTAG] Halted
+@   1461700ns | [JTAG] Resumed hart 0 
+@   1461700ns | [CORE] Wait for end of code...
+@   4750400ns | [UART] Running SIMD threshold on 28x28 image...
+@   4750400ns | [UART] raw: '{'h52, 'h75, 'h6e, 'h6e, 'h69, 'h6e, 'h67, 'h20, 'h53, 'h49, 'h4d, 'h44, 'h20, 'h74, 'h68, 'h72, 'h65, 'h73, 'h68, 'h6f, 'h6c, 'h64, 'h20, 'h6f, 'h6e, 'h20, 'h32, 'h38, 'h78, 'h32, 'h38, 'h20, 'h69, 'h6d, 'h61, 'h67, 'h65, 'h2e, 'h2e, 'h2e, 'ha} 
+
