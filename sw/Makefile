@@ -80,14 +80,13 @@ compile: $(BINDIR) $(ALL_TARGETS)
 
 # === Custom Project Targets ===
 
-# Source-specific dependencies
-bin/threshold_scalar.elf: threshold_scalar.c image_data.h
-bin/threshold_simd.elf: threshold_simd.c image_data.h
-
-# Custom target: build scalar and SIMD programs + hex + dump
+# Ensure ELF is built before HEX/DUMP (rely on existing Makefile logic)
 .PHONY: test-threshold
 test-threshold: bin/threshold_scalar.hex bin/threshold_simd.hex
 	@echo "[✓] Scalar and SIMD threshold programs built."
+
+# No need to manually list .c/.h as dependencies — that's handled
+# by %.elf: %.c.o ... pattern rules.
 
 # Custom target: disassemble SIMD ELF to inspect custom instructions
 .PHONY: dump-simd
