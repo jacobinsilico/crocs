@@ -11,39 +11,40 @@
 // Memory-mapped addresses in SRAM
 #define INPUT_ADDR   ((volatile uint8_t *) 0x10000000)
 #define OUTPUT_ADDR  ((volatile uint8_t *) 0x10000400)
+#define EOC_ADDR     ((volatile uint32_t *) 0x20000008)
 
 int main() {
     uart_init();
     printf("Running SIMD threshold on 28x28 image...\n");
 
-    // Copy image to SRAM
+    // Copy image to SRAM input buffer
     for (int i = 0; i < N_PIXELS; i++) {
         INPUT_ADDR[i] = image_data[i];
     }
 
     uint32_t start = get_mcycle();
 
-    // SIMD threshold in chunks of 4 pixels (1 word)
     for (int i = 0; i < N_PIXELS; i += 4) {
-        uint32_t result;
-
         asm volatile (
-            "mv x11, %1       \n"             // x11 = address of input[i]
-            ".word 0x00b5850b \n"             // vld x10, 0(x11)
-            ".word 0x07f5530b \n"             // vthreshi x12, x10, 127
-            ".word 0x00c5a50b \n"             // vst x12, 0(x11)
-            : "=r"(result)
-            : "r"(INPUT_ADDR + i)
+            "mv x11, %[in_addr]     \n"       // x11 = input address
+            ".word 0x00b5850b        \n"       // vld x10, 0(x11)
+            ".word 0x07f5530b        \n"       // vthreshi x12, x10, 127
+            "mv x11, %[out_addr]    \n"       // x11 = output address
+            ".word 0x00c5a50b        \n"       // vst x12, 0(x11)
+            :
+            : [in_addr] "r"(INPUT_ADDR + i),
+              [out_addr] "r"(OUTPUT_ADDR + i)
             : "x10", "x11", "x12"
         );
 
-        // Optionally store result to software-visible output buffer
-        // ((uint32_t *)OUTPUT_ADDR)[i / 4] = result;
+        if ((i / 4) % 20 == 0) {
+            printf("Processed %d pixels...\n", i + 4);
+        }
     }
 
     uint32_t end = get_mcycle();
     printf("SIMD thresholding done in %d cycles\n", end - start);
-    uart_write_flush();
 
-    return 1;
+    *EOC_ADDR = 1;       // Signal end of computation to simulation
+    while (1);           // Wait for simulation to halt
 }
