@@ -77,3 +77,27 @@ clean:
 	rm -f *.o
 
 compile: $(BINDIR) $(ALL_TARGETS)
+
+# === Custom Project Targets ===
+
+# Source-specific dependencies
+bin/threshold_scalar.elf: threshold_scalar.c image_data.h
+bin/threshold_simd.elf: threshold_simd.c image_data.h
+
+# Custom target: build scalar and SIMD programs + hex + dump
+.PHONY: test-threshold
+test-threshold: bin/threshold_scalar.hex bin/threshold_simd.hex
+	@echo "[✓] Scalar and SIMD threshold programs built."
+
+# Custom target: disassemble SIMD ELF to inspect custom instructions
+.PHONY: dump-simd
+dump-simd: bin/threshold_simd.elf
+	$(RISCV_OBJDUMP) -D -s $< | less
+
+# Custom target: run Verilator simulation (pass +binary argument manually)
+.PHONY: sim
+sim:
+	@echo "Usage: make sim BINARY=bin/threshold_scalar.hex"
+	@echo "       or:    make sim BINARY=bin/threshold_simd.hex"
+	@echo "Running simulation..."
+	oseda -2025.01 ./obj_dir/Vtb_croc_soc +binary=$(BINARY)
