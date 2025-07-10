@@ -5,7 +5,7 @@
 #include "lib/inc/util.h"
 #include "image_data.h"
 
-#define N_PIXELS   196
+#define N_PIXELS   25
 #define THRESHOLD  127
 
 // Memory-mapped addresses in SRAM
