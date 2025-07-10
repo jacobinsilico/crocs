@@ -451,21 +451,21 @@ module tb_croc_soc #(
         fetch_en_i = 1'b0;
         
         // wait for reset
-        #ClkPeriod
+        #ClkPeriod;
 
         // init jtag
         jtag_init();
 
-        $display("@%t | [CORE] Start fetching instructions", $time);
-        fetch_en_i = 1'b1;
-
-        jtag_halt();
         // write test value to sram
         jtag_write_reg32(croc_pkg::SramBaseAddr, 32'h1234_5678, 1'b1);
         // load binary to sram
         jtag_load_hex(binary_path);
 
-    
+        $display("@%t | [CORE] Start fetching instructions", $time);
+        fetch_en_i = 1'b1;
+
+        // halt core
+        jtag_halt();
 
         // resume core
         jtag_resume();
