@@ -3,7 +3,7 @@ from PIL import Image
 # Parameters
 input_image = "lena.png"
 output_header = "image_data.h"
-width, height = 14, 14  # MNIST-like size
+width, height = 5, 5  # MNIST-like size
 
 # Load and process image
 img = Image.open(input_image).convert("L")  # Convert to 8-bit grayscale
