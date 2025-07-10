@@ -1,0 +1,37 @@
+Front-end Preprocessing: Yosys reads, parses the RTL code and generates an internal representation of the design
+Elaboration: Yosys produces a netlist includes logic gates and higher-level constructs such as flip-flops 
+Coarse-grain Synthesis: Yosys translates the RTL into a gate-level netlist. 
+Technology Mapping: Yosys uses ABC to map the optimized netlist to a specific target technology
+
+Step - 1: load the target technology library
+IHP-SG13G2 technology library, a 130nm CMOS process
+files under croc/ihp13/pdk/ihp-sg13g2/libs.ref (if commands don't generate the files at croc/technology/lib)
+
+
+Yosys only partially supports constraints through the external ABC technology mapping tool. There are three key types of constraints you can define:
+
+Clock Period: Maximum allowed clock period for the design.
+Driving Cell: Type of cell used to drive the primary inputs of the design.
+Output Load: The capacitive load that each output of the design will drive.
+
+
+Different timing paths
+the data paths of a sequential circuit can be subdivided into four categories with regard to their timings:
+
+t_ss: From state-holding registers to state-holding registers (s -> s),
+t_is: From input to state-holding registers (i -> s),
+t_so: From state-holding registers to output (s -> o),
+t_io: From input to output (i -> o).
+
+
+Propagation delay in CMOS circuits is critically influenced by the capacitive load that the output drives. 
+A higher load capacitance means it takes longer for the output to charge or discharge, directly increasing 
+the delay and affecting signal propagation speed. Using the buffer cell’s input capacitance as a proxy for 
+the load is a common practice because it reliably represents the effective capacitive load seen by the driving cell. 
+Refer to the standard cell documentation, we can find for example, the input pin capacitance of sg13g2_buf_8 is 0.0086pF, 
+and sg13g2_buf_16 is 0.0171pF.
+
+In many cases, designers choose a higher capacitance value to ensure that timing constraints are met even under 
+worst-case loading conditions.
+
+https://github.com/IHP-GmbH/IHP-Open-PDK/blob/main/ihp-sg13g2/libs.ref/sg13g2_stdcell/doc/sg13g2_stdcell_typ_1p20V_25C.pdf
