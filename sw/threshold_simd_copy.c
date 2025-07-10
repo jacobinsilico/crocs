@@ -10,14 +10,14 @@
 
 // Memory-mapped addresses in SRAM
 #define INPUT_ADDR   ((volatile uint8_t *) 0x10000000)
-#define OUTPUT_ADDR  ((volatile uint8_t *) 0x10000400)
-// #define OUTPUT_ADDR  ((volatile uint8_t *)(0x10000000 + N_PIXELS))
+// #define OUTPUT_ADDR  ((volatile uint8_t *) 0x10000400)
+#define OUTPUT_ADDR  ((volatile uint8_t *)(0x10000000 + N_PIXELS))
 
 int main() {
     uart_init();
     asm volatile ("nop; nop; nop; nop; nop;");
     printf("Running SIMD threshold on 28x28 image...\n");
-    uart_write_flush();
+    // uart_write_flush();
     // Copy image to SRAM input buffer
     printf("About to read the image"); // we never get here
     for (int i = 0; i < N_PIXELS; i++) {
@@ -26,7 +26,7 @@ int main() {
     printf("Read the image");
     uint32_t start = get_mcycle();
 
-    for (int i = 0; i < N_PIXELS; i += 4) {
+    for (int i = 0; i <= N_PIXELS - 4; i += 4) {
         asm volatile (
             "mv x11, %[in_addr]     \n"       // x11 = input address
             ".word 0x00b5850b        \n"       // vld x10, 0(x11)
