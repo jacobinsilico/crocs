@@ -11,7 +11,6 @@
 // Memory-mapped addresses in SRAM
 #define INPUT_ADDR   ((volatile uint8_t *) 0x10000000)
 #define OUTPUT_ADDR  ((volatile uint8_t *) 0x10000400)
-// #define OUTPUT_ADDR  ((volatile uint8_t *)(0x10000000 + N_PIXELS))
 
 int main() {
     uart_init();
