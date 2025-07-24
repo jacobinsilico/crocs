@@ -14,7 +14,7 @@ module tb_croc_soc #(
     parameter time         TAppl         = 0.2*ClkPeriod,
     parameter time         TTest         = 0.8*ClkPeriod,
     parameter int unsigned RstCycles     = 1,
-    // UART
+    // UARfT
     parameter int unsigned  UartBaudRate      = 115200,
     parameter int unsigned  UartParityEna     = 0,
 

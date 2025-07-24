@@ -38,13 +38,13 @@ package user_pkg;
   typedef enum int {
     UserError = 0,
     UserRom = 1,
-    UserMod = 2,
+    UserMod = 2
   } user_demux_outputs_e;
 
   // Address rules given to address decoder
-  localparam croc_pkg::addr_map_rule_t [NumDemuxSbrRules-1:0] user_addr_map = '{
-    '{ idx:UserRom, start_addr: UserRomAddrOffset, end_addr: UserRomAddrOffset + UserRomAddrRange}
-    '{ idx:UserMod, start_addr: UserModAddrOffset, end_addr: UserModAddrOffset + UserModAddrRange}
-  };
+localparam croc_pkg::addr_map_rule_t [NumDemuxSbrRules-1:0] user_addr_map = '{
+  '{ idx:UserRom, start_addr: UserRomAddrOffset, end_addr: UserRomAddrOffset + UserRomAddrRange },
+  '{ idx:UserMod, start_addr: UserModAddrOffset, end_addr: UserModAddrOffset + UserModAddrRange }
+};
 
 endpackage

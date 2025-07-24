@@ -25,61 +25,72 @@ module user_rom #(
   output obi_rsp_t obi_rsp_o
 );
 
-  logic [ObiCfg.DataWidth-1:0] rsp_data; // data sent back
-  logic obi_err;
-  logic we_d, we_q;
-  logic req_d, req_q;
-  logic [3:0] word_addr_d, word_addr_q;  // relevant part of the word-aligned address
-  logic [ObiCfg.IdWidth-1:0] id_d, id_q; // id of the request, must be same for response
+  // Define some registers to hold the requests fields
+  logic req_d, req_q; // Request valid
+  logic we_d, we_q; // Write enable
+  logic [ObiCfg.AddrWidth-1:0] addr_d, addr_q; // Internal address of the word to read
+  logic [ObiCfg.IdWidth-1:0] id_d, id_q; // Id of the request, must be same for the response
 
-  // Step 1: Request phase
-  // grant the request (ROM is always ready so this can be assigned directly)
-  assign obi_rsp_o.gnt = obi_req_i.req;
-  // safe important info
-  assign id_d          = obi_req_i.a.aid;
-  assign word_addr_d   = obi_req_i.a.addr[4:2];
-  assign we_d          = obi_req_i.a.we;
-  assign req_d         = obi_req_i.req;
+  // Signals used to create the response
+  logic [ObiCfg.DataWidth-1:0] rsp_data; // Data field of the obi response
+  logic rsp_err; // Error field of the obi response
 
-  `FF(req_q, req_d, '0, clk_i, rst_ni)
-  `FF(we_q, we_d, '0, clk_i, rst_ni)
-  `FF(word_addr_q, word_addr_d, '0, clk_i, rst_ni)
-  `FF(id_q, id_d, '0, clk_i, rst_ni)
-
-  // Step 2: Response phase
-  // On the next cycle, send the response back with the same ID and the data
-  always_comb begin
-    obi_rsp_o.r.rdata      = rsp_data;
-    obi_rsp_o.r.rid        = id_q;
-    obi_rsp_o.r.err        = 1'b0;
-    obi_rsp_o.r.r_optional = '0;
-    obi_rsp_o.rvalid       = req_q;
-    obi_rsp_o.r.err        = obi_err;
+  // Wire the registers holding the request
+  // TODO 1 : Modify the code such that the ROM will respond after 2 cycles instead of 1
+  assign req_d = obi_req_i.req;
+  assign id_d = obi_req_i.a.aid;
+  assign we_d = obi_req_i.a.we;
+  assign addr_d = obi_req_i.a.addr;
+  always_ff @(posedge (clk_i) or negedge (rst_ni)) begin
+    if (!rst_ni) begin
+      req_q <= '0;
+      id_q <= '0;
+      we_q <= '0;
+      addr_q <= '0;
+    end else begin
+      req_q <= req_d;
+      id_q <= id_d;
+      we_q <= we_d;
+      addr_q <= addr_d;
+    end
   end
 
+  // Assign the response data
+  // TODO 2 : Modify the code such that the ROM will contain (up to) 32 ASCII chars
+  // hold in your initials in the form: "JD&JD's ASIC\0"
+  logic [2:0] word_addr;
   always_comb begin
     rsp_data = '0;
-    obi_err  = '0;
+    rsp_err  = '0;
+    word_addr = addr_q[4:2];
 
-    if (req_q) begin
-      if (~we_q) begin
-        case(word_addr_q)
-          //TODO: find a cool yoshi fact instead -> Japanese Yoshi eats Dolphins?
-          4'b0000: rsp_data= 32'h4A616B75; // Should be: "Jakub Szkudlarek and Aditya Kulkarni"
-          4'b0001: rsp_data= 32'h6220537A;
-          4'b0010: rsp_data= 32'h6B75646C;
-          4'b0011: rsp_data= 32'h6172656B;
-          4'b0100: rsp_data= 32'h20616E64;
-          4'b0101: rsp_data= 32'h20416469;
-          4'b0111: rsp_data= 32'h74796120;
-          4'b1000: rsp_data= 32'h4B756C6B;
-          4'b1001: rsp_data= 32'h61726E69;
-          default: rsp_data= 32'hDEADBEEF;
+    if(req_q) begin
+      if(~we_q) begin
+        case(word_addr)
+          3'h0: rsp_data = 32'h4A616B75;
+          3'h1: rsp_data = 32'h6220616E;
+          3'h2: rsp_data = 32'h64204164;
+          3'h3: rsp_data = 32'h69747961;
+          3'h4: rsp_data = 32'h4A616B75;
+          3'h5: rsp_data = 32'h6220616E;
+          3'h6: rsp_data = 32'h64204164;
+          3'h7: rsp_data = 32'h69747961;
+          default: rsp_data = 32'h0;
         endcase
       end else begin
-        obi_err = 1'b1;
+        rsp_err = '1;
       end
     end
   end
+
+  // Wire the response
+  // A channel
+  assign obi_rsp_o.gnt = obi_req_i.req;
+  // R channel:
+  assign obi_rsp_o.rvalid = req_q;
+  assign obi_rsp_o.r.rdata = rsp_data;
+  assign obi_rsp_o.r.rid = id_q;
+  assign obi_rsp_o.r.err = rsp_err;
+  assign obi_rsp_o.r.r_optional = '0;
 
 endmodule

@@ -10,6 +10,8 @@
 #include "timer.h"
 #include "gpio.h"
 #include "util.h"
+#include "config.h"
+#define USER_ROM_BASE_ADDR 0x20000000
 
 char receive_buff[16] = {0};
 
@@ -37,10 +39,23 @@ int main() {
     printf(receive_buff);
     uart_write_flush();
 
+    // toggling some GPIOs
+    gpio_set_direction(0xFFFF, 0x000F); // lowest four as outputs
+    gpio_write(0x0A);  // ready output pattern
+    gpio_enable(0xFF); // enable lowest eight
+    // wait a few cycles to give GPIO signal time to propagate
+    asm volatile ("nop; nop; nop; nop; nop;");
+    printf("GPIO (expect 0xA0): 0x%x\n", gpio_read());
+
+    gpio_toggle(0x0F); // toggle lower 8 GPIOs
+    asm volatile ("nop; nop; nop; nop; nop;");
+    printf("GPIO (expect 0x50): 0x%x\n", gpio_read());
+    uart_write_flush();
+
     // We print the names of the designers
     printf("The content of the ROM is:\n");
-    for(int i=0; i<8; i++)
-        printf("%x - ", *reg32(USER_ROM_BASE_ADDR, 4*i));
+    for(int i=0; i<8*4; i++) 
+        printf("%c", *reg8(USER_ROM_BASE_ADDR, 4*i));
     printf("\n");
     uart_write_flush();
     return 1;
